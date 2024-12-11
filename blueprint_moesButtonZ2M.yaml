@@ -1,77 +1,79 @@
 blueprint:
-  name: Zigbee2MQTT - Tuya 2-Button Scene Switch
-  description: Automate your Tuya 2-Button Scene Switch  or MEOS 2 Button Zigbee Switch via Zigbee2MQTT.
+  name: Moes/Tuya 2-Button Scene Switch (TS0044)
+  description: >
+    Controls various entities based on single and double press actions from a Moes 2-Button Scene Switch.
   domain: automation
   input:
-    switch:
-      name: Tuya 2-Button Scene Switch
-      description: Tuya 2-Button Scene Switch to use
+    switch_topic:
+      name: MQTT Topic
+      description: The MQTT topic for the scene switch.
       selector:
-        entity:
-          integration: mqtt
-          domain: sensor
-    button_one_short_press:
-      name: Single Press - Button 1
-      description: Action to run on button 1 (lower-left) single press
-      default: []
+        text:
+    single_1:
+      name: Action for 1 Single Press
+      description: Action to run when button 1 is single pressed.
       selector:
         action: {}
-    button_one_double_press:
-      name: Double Press - Button 1
-      description: Action to run on button 1 (lower-left) double press
-      default: []
+    single_2:
+      name: Action for 2 Single Press
+      description: Action to run when button 2 is single pressed.
       selector:
         action: {}
-    button_one_long_press:
-      name: Long Press - Button 1
-      description: Action to run on button 1 (lower-left) long press
-      default: []
+    double_1:
+      name: Action for 1 Double Press
+      description: Action to run when button 1 is double pressed.
       selector:
         action: {}
-    button_two_short_press:
-      name: Single Press - Button 2
-      description: Action to run on button 2 (lower-right) single press
-      default: []
+    double_2:
+      name: Action for 2 Double Press
+      description: Action to run when button 2 is double pressed.
       selector:
         action: {}
-    button_two_double_press:
-      name: Double Press - Button 2
-      description: Action to run on button 2 (lower-right) double press
-      default: []
+    hold_1:
+      name: Action for 1 hold Press
+      description: Action to run when button 1 is held.
       selector:
         action: {}
-    button_two_long_press:
-      name: Long Press - Button 2
-      description: Action to run on button 2 (lower-right) long press
-      default: []
+    hold_2:
+      name: Action for 2 hold Press
+      description: Action to run when button 2 is held.
       selector:
         action: {}
-  source_url: https://github.com/Caleb79/ha-blueprint/blob/main/blueprint_moesButtonZ2M.yaml
-mode: restart
-max_exceeded: silent
+
 trigger:
-- platform: state
-  entity_id: !input "switch"
-  attribute: action
+  - platform: mqtt
+    topic: !input switch_topic
+
 action:
-- variables:
-    command: "{{ trigger.to_state.state }}"
-- choose:
-  - conditions: 
-    - "{{ command == '1_single' }}"
-    sequence: !input "button_one_short_press"
-  - conditions: 
-    - "{{ command == '2_single' }}"
-    sequence: !input "button_two_short_press"
-  - conditions: 
-    - "{{ command == '1_double' }}"
-    sequence: !input "button_one_double_press"
-  - conditions: 
-    - "{{ command == '2_double' }}"
-    sequence: !input "button_two_double_press"
-  - conditions: 
-    - "{{ command == '1_hold' }}"
-    sequence: !input "button_one_long_press"
-  - conditions: 
-    - "{{ command == '2_hold' }}"
-    sequence: !input "button_two_long_press"
+  - choose:
+      - conditions:
+          - condition: template
+            value_template: "{{ trigger.payload == '1_single' }}"
+        sequence: !input single_1
+
+      - conditions:
+          - condition: template
+            value_template: "{{ trigger.payload == '2_single' }}"
+        sequence: !input single_2
+
+      - conditions:
+          - condition: template
+            value_template: "{{ trigger.payload == '1_double' }}"
+        sequence: !input double_1
+
+      - conditions:
+          - condition: template
+            value_template: "{{ trigger.payload == '2_double' }}"
+        sequence: !input double_2
+
+      - conditions:
+          - condition: template
+            value_template: "{{ trigger.payload == '1_hold' }}"
+        sequence: !input hold_1
+
+      - conditions:
+          - condition: template
+            value_template: "{{ trigger.payload == '2_hold' }}"
+        sequence: !input hold_2
+
+mode: single
